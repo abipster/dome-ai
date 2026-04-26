@@ -59,10 +59,12 @@ services:
     environment:
       - PORT=8000
       - INTERVAL=30
-      - OLLAMA_HOST=host.docker.internal:11434
+      - OLLAMA_HOST=ollama:11434
       - API_TIMEOUT=30
       - LOG_LEVEL=INFO
     restart: unless-stopped
+    networks:
+      - t2_proxy
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:${OPEN_WEBUI_DOCKER_TAG:-main}
