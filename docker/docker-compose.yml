@@ -36,8 +36,6 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
       - OLLAMA_KEEP_ALIVE=${OLLAMA_KEEP_ALIVE:--1}
-      - OLLAMA_PROMETHEUS_SERVER=true
-      # - OLLAMA_HOST=0.0.0.0
     volumes:
       - ${DOCKER_MODELS}/ollama:/root/.ollama
     ports:
@@ -51,6 +49,14 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu, compute, utility]
+
+  # Prometheus Exporter for Ollama
+  ollama-exporter:
+    image: frcooper/ollama-exporter
+    environment:
+      - OLLAMA_URL=http://ollama:11434
+    ports:
+      - "8000:8000"
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:${OPEN_WEBUI_DOCKER_TAG:-main}

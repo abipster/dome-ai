@@ -81,7 +81,10 @@ cat /etc/docker/daemon.json
 
 ## Stack
 
+- `portainer-agent`: local Portainer instance for container management
+- `dozzle`: local dozzle agent for container log viewing
 - `ollama`: local model runtime with NVIDIA GPU access
+- `ollama-exporter`: Prometheus exporter for Ollama metrics
 - `open-webui`: local chat UI and model interaction layer
 - `qdrant`: vector database for later RAG and retrieval workflows
 - `searxng`: private local metasearch instance
@@ -106,7 +109,7 @@ cat /etc/docker/daemon.json
 
 Recommended starting set for a single RTX 5090:
 
-- General chat: `qwen2.5:32b`
+- General chat: `qwen3.6:27b`
 - Coding: `qwen2.5-coder:32b`
 - Reasoning: `deepseek-r1:32b`
 
