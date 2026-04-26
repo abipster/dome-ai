@@ -5,9 +5,9 @@ source /opt/dome/docker/.env
 set +o allexport
 
 
-echo $DOCKERDIR
-echo $DOCKERLOGS
-echo $DOCKERRUNTIME
+echo $DOCKER_DIR
+echo $DOCKER_LOGS
+echo $DOCKER_RUNTIME
 
 # mount shared directories
 # TODO
@@ -15,18 +15,23 @@ echo $DOCKERRUNTIME
 # Create required directories
 # app directories
 
-# mkdir -p $DOCKERDIR # already exists
+# mkdir -p $DOCKER_DIR # already exists
 # mkdir -p $DOCKER_RUNTIME/postgres
-mkdir -p $DOCKERRUNTIME/ollama
+mkdir -p $DOCKER_RUNTIME/open-webui
+mkdir -p $DOCKER_RUNTIME/searxng/data
+mkdir -p $DOCKER_RUNTIME/searxng/valkey
+mkdir -p $DOCKER_DIR/searxng
+
+mkdir -p $DOCKER_MODELS/ollama
+mkdir -p $DOCKER_MODELS/qdrant
 
 # log directories
-mkdir -p $DOCKERLOGS
-
+mkdir -p $DOCKER_LOGS
 
 ## Set owners and permissions
-sudo chown -R dome:dome $DOCKERDIR
-sudo chown -R dome:dome $DOCKERLOGS
-sudo chown -R dome:dome $DOCKERRUNTIME
+sudo chown -R dome:dome $DOCKER_DIR
+sudo chown -R dome:dome $DOCKER_LOGS
+sudo chown -R dome:dome $DOCKER_RUNTIME
 
 echo "== Setup SSH =="
 echo "run the following instructions manually:"

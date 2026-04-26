@@ -25,9 +25,15 @@ usermod -aG sudo $USERNAME
 # add user to docker group
 usermod -aG docker $USERNAME
 
+# regenerate SSH host keys
+echo "Regenerating SSH host keys"
+rm -f /etc/ssh/ssh_host_*
+ssh-keygen -A
+systemctl restart ssh
+
 # create required directories
 echo "Creating required directories"
-mkdir /opt/dome
+mkdir -p /opt/dome
 chown $USERNAME:$USERNAME /opt/dome
 
 echo "Done"
