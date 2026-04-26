@@ -52,11 +52,17 @@ services:
 
   # Prometheus Exporter for Ollama
   ollama-exporter:
-    image: frcooper/ollama-exporter
-    environment:
-      - OLLAMA_URL=http://ollama:11434
+    image: lucabecker42/ollama-exporter:latest
+    container_name: ollama-exporter
     ports:
-      - "8000:8000"
+      - '8000:8000'
+    environment:
+      - PORT=8000
+      - INTERVAL=30
+      - OLLAMA_HOST=host.docker.internal:11434
+      - API_TIMEOUT=30
+      - LOG_LEVEL=INFO
+    restart: unless-stopped
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:${OPEN_WEBUI_DOCKER_TAG:-main}
