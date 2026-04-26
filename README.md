@@ -2,6 +2,83 @@
 
 Minimal local AI stack for Dome built around Ollama, Open WebUI, Qdrant, and SearXNG.
 
+## Setup
+
+I confirmed your current dome-ai compose asks Docker for the `nvidia` device driver, so this is a runtime/toolkit registration issue on the LXC host rather than an Ollama image problem. 
+
+
+Plan to fix this quickly:
+1. Confirm Docker can see an NVIDIA runtime.
+2. Install/configure NVIDIA Container Toolkit inside the LXC.
+3. Validate GPU access with a one-off CUDA container.
+4. Start `ollama` again.
+5. If it still fails, apply the LXC host-side GPU passthrough checks.
+
+Most likely root cause: Docker in the LXC does not have the `nvidia` runtime registered, even though `nvidia-smi` works in the container OS. Your compose in docker-compose.yml requests `driver: nvidia`, so Docker must know that runtime.
+
+Run these on `ai.dome` (inside the LXC):
+
+```bash
+# 1) Check current docker runtimes
+docker info --format '{{json .Runtimes}}'
+docker info | grep -i -E 'runtime|nvidia|rootless'
+```
+
+If `nvidia` is missing, install toolkit:
+
+```bash
+# 2) Install NVIDIA Container Toolkit (Ubuntu 24.04)
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+  | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+
+curl -fsSL https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
+  | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
+  | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list > /dev/null
+
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+```
+
+Configure Docker runtime and restart:
+
+```bash
+# 3) Register nvidia runtime with docker
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+
+# verify nvidia runtime appears
+docker info --format '{{json .Runtimes}}'
+```
+
+Test GPU from Docker directly (before compose):
+
+```bash
+# 4) Smoke test GPU in docker
+docker run --rm --gpus all nvidia/cuda:12.6.3-base-ubuntu24.04 nvidia-smi
+```
+
+If this works, retry your service:
+
+```bash
+docker compose up -d ollama
+docker logs --tail=100 ollama
+```
+
+If it still fails, check these LXC prerequisites on the Proxmox host (not inside LXC):
+- Container is `privileged` (recommended for GPU passthrough) or properly configured unprivileged mapping.
+- `nesting=1` enabled.
+- NVIDIA device nodes are bind-mounted into the CT (`/dev/nvidia0`, `/dev/nvidiactl`, `/dev/nvidia-uvm`, `/dev/nvidia-uvm-tools`).
+- cgroup device allow rules include NVIDIA device majors.
+
+Quick temporary workaround (CPU only) while fixing runtime:
+- Remove/comment GPU reservation block in docker-compose.yml for `ollama`, then start it without GPU.
+
+If you paste the output of these two commands, I can pinpoint the exact next step:
+```bash
+docker info --format '{{json .Runtimes}}'
+cat /etc/docker/daemon.json
+```
+
 ## Stack
 
 - `ollama`: local model runtime with NVIDIA GPU access

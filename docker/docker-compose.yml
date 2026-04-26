@@ -16,6 +16,17 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
+  dozzle-agent:
+    image: amir20/dozzle:latest
+    container_name: dozzle-agent
+    restart: unless-stopped
+    command: agent
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - 7007:7007
+  
+  ############################ AI SERVICES
   ollama:
     image: ollama/ollama:${OLLAMA_DOCKER_TAG:-latest}
     container_name: ollama
@@ -25,6 +36,8 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
       - OLLAMA_KEEP_ALIVE=${OLLAMA_KEEP_ALIVE:--1}
+      - OLLAMA_PROMETHEUS_SERVER=true
+      # - OLLAMA_HOST=0.0.0.0
     volumes:
       - ${DOCKER_MODELS}/ollama:/root/.ollama
     ports:
